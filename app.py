@@ -48,6 +48,24 @@ def list_files():
     except FileNotFoundError:
         return jsonify({'files': []})
 
+# 🔥 파일 삭제 API 추가
+@app.route('/delete', methods=['POST'])
+def delete_file():
+    data = request.get_json()
+    filename = data.get('filename')
+    if not filename:
+        return jsonify({'success': False, 'error': '파일명이 누락됨'})
+
+    try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': '파일이 존재하지 않음'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 # 파일 제목 또는 내용에서 키워드 검색
 @app.route('/search', methods=['POST'])
 def search_files():
@@ -78,7 +96,7 @@ def search_files():
             elif ext == '.docx':
                 doc = docx.Document(file_path)
                 content = '\n'.join([p.text for p in doc.paragraphs])
-            # (.hwp 는 별도 처리 필요)
+            # .hwp는 웹 환경에서 안정적인 검색 불가로 제외
             match_content = keyword in content
 
         except Exception as e:
