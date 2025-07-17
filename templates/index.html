@@ -72,6 +72,7 @@
   gap: 10px;
   padding: 10px;
   padding-right: 0;
+  background-color: transparent;
 
 }
 
@@ -157,6 +158,14 @@
       right: 10px;
       z-index: 10000;
     }
+
+    #open-dataset-btn {
+      position: fixed;
+      top: 40px;
+      right: 10px;
+      z-index: 10000;
+    }
+
     #close-chart-btn {
       position: absolute;
       top: 10px;
@@ -273,7 +282,8 @@
 </head>
 <body>
   <!-- 🔘 차트 열기 버튼 -->
-  <button id="open-chart-btn" onclick="openChartContainer()">📊 차트 보기</button>
+<button id="open-chart-btn" onclick="openChartContainer('chart')">📊 차트 보기</button>
+<button id="open-dataset-btn" onclick="openChartContainer('dataset')">📁 데이터 셋</button>
 
   <!-- ✅ 기본 파일 업로드 + 검색 -->
   <h2>📁 다중 파일 업로드</h2>
@@ -353,15 +363,95 @@
   <script>
 
 // 차트보기 버튼 상호작용
-function openChartContainer() {
-  document.getElementById('chart-container').style.display = 'block';
-  document.getElementById('open-chart-btn').style.display = 'none';  // 👈 버튼 숨김
+function openChartContainer(mode) {
+  const chartContainer = document.getElementById('chart-container');
+  chartContainer.style.display = 'block';
+
+  // 버튼 숨김
+  document.getElementById('open-chart-btn').style.display = 'none';
+  document.getElementById('open-dataset-btn').style.display = 'none';
+
+  // 차트 관련 요소 숨기기 (mode가 dataset일 때만)
+  if (mode === 'dataset') {
+    chartContainer.innerHTML = `
+      <button id="close-chart-btn" onclick="closeChartContainer()">×</button>
+    <h3>📊 엑셀 병합</h3>
+<div id="merge-section">
+  <label for="base-select">기준 엑셀:</label>
+  <select id="base-select"></select>
+
+  <label for="merge-select">병합 엑셀:</label>
+  <select id="merge-select"></select>
+
+  <button id="merge-btn">병합 결과 다운로드</button>
+</div>
+
+    `;
+  }
 }
-//차트보기 재활성화
+async function loadExcelFileList() {
+  const res = await fetch('/files');
+  const data = await res.json();
+  const excelFiles = data.files.filter(f => f.endsWith('.xlsx') || f.endsWith('.xls'));
+
+  const baseSel = document.getElementById('base-select');
+  const mergeSel = document.getElementById('merge-select');
+  baseSel.innerHTML = '';
+  mergeSel.innerHTML = '';
+
+  excelFiles.forEach(f => {
+    const opt1 = document.createElement('option');
+    opt1.value = f;
+    opt1.textContent = f;
+    baseSel.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = f;
+    opt2.textContent = f;
+    mergeSel.appendChild(opt2.cloneNode(true));
+  });
+}
+
+document.getElementById('merge-btn').addEventListener('click', async () => {
+  const file1 = document.getElementById('base-select').value;
+  const file2 = document.getElementById('merge-select').value;
+
+  if (!file1 || !file2 || file1 === file2) {
+    alert('서로 다른 두 개의 엑셀 파일을 선택하세요!');
+    return;
+  }
+
+  const res = await fetch('/merge_custom_horizontal_named', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file1, file2 })
+  });
+
+  if (res.ok) {
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'merged_result.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    alert('병합 실패!');
+  }
+});
+
+window.onload = loadExcelFileList;
 
 function closeChartContainer() {
-  document.getElementById('chart-container').style.display = 'none';
-  document.getElementById('open-chart-btn').style.display = 'inline-block';  // 👈 차트 보기 버튼 다시 표시
+  const chartContainer = document.getElementById('chart-container');
+  chartContainer.style.display = 'none';
+
+  // 기존 버튼 복원
+  document.getElementById('open-chart-btn').style.display = 'inline-block';
+  document.getElementById('open-dataset-btn').style.display = 'inline-block';
+
+  // chart-container 내용 복원 (차트용 HTML이 있으면 너가 넣어야 함)
+  location.reload();  // 임시로 새로고침 (내용 초기화 목적)
 }
 
     // 기본 파일 업로드 + 검색
@@ -468,6 +558,7 @@ function closeChartContainer() {
       document.getElementById('upload-result').innerText = '업로드 성공: ' + result.files.join(', ');
     }
   });
+  
 
     const topButtons = document.getElementById('topButtons');
     const container1 = document.getElementById('container1');
