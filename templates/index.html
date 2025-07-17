@@ -71,7 +71,8 @@
   flex-direction: column;
   gap: 10px;
   padding: 10px;
-  background-color: #e0e0e0;
+  padding-right: 0;
+
 }
 
 #chart-container .button-panel button {
@@ -165,6 +166,91 @@
       border: none;
       cursor: pointer;
     }
+
+    .setButton{
+      right: 0;
+      z-index: 20000;
+      border: 1px solid black;
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+      border-right: 0;
+    }
+
+    .fileButton{
+      right: 0;
+      z-index: 20000;
+      border: 1px solid black;
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+      border-right: 0;
+    }
+    .search-wrapper {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+#search-input {
+  width: 60%;
+  padding: 10px 14px;
+  border: 2px solid #b47bff;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f7f3ff;
+  color: #4b0082;
+  box-shadow: 0 2px 5px rgba(180, 123, 255, 0.15);
+}
+
+#search-input::placeholder {
+  color: #a27bd8;
+}
+
+.file-list-wrapper {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f9f4ff;
+  border-radius: 10px;
+  border: 1px solid #d8b4fe;
+  box-shadow: 0 2px 6px rgba(128, 90, 213, 0.1);
+}
+
+#file-list2 {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+#file-list2 li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f1e7ff;
+  border: 1px solid #c084fc;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+#file-list2 li:hover {
+  background-color: #e4d4ff;
+}
+
+#file-list2 a {
+  color: #7e22ce;
+  margin-left: 10px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#file-list2 button {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #7e22ce;
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -196,8 +282,8 @@
   <!-- 설정 -->
   <div class="side-wrapper" id="container1">
     <div class="button-panel">
-      <button onclick="openContainer('container1')">설정</button>
-      <button onclick="openContainer('container2')">파일</button>
+      <button class="setButton" onclick="openContainer('container1')">설정</button>
+      <button class="fileButton" onclick="openContainer('container2')">파일</button>
     </div>
     <div class="side-container">
       <button class="close-btn" onclick="closeContainers()">×</button>
@@ -223,8 +309,8 @@
   <!-- 업로드 -->
   <div class="side-wrapper" id="container2">
     <div class="button-panel">
-      <button onclick="openContainer('container1')">설정</button>
-      <button onclick="openContainer('container2')">파일</button>
+      <button class="setButton" onclick="openContainer('container1')">설정</button>
+      <button class="fileButton" onclick="openContainer('container2')">파일</button>
     </div>
     <div class="side-container">
       <button class="close-btn" onclick="closeContainers()">×</button>
