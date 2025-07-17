@@ -190,14 +190,14 @@
 
   <div class="top-buttons" id="topButtons">
     <button onclick="openContainer('container1')">설정</button>
-    <button onclick="openContainer('container2')">업로드</button>
+    <button onclick="openContainer('container2')">파일</button>
   </div>
 
   <!-- 설정 -->
   <div class="side-wrapper" id="container1">
     <div class="button-panel">
       <button onclick="openContainer('container1')">설정</button>
-      <button onclick="openContainer('container2')">업로드</button>
+      <button onclick="openContainer('container2')">파일</button>
     </div>
     <div class="side-container">
       <button class="close-btn" onclick="closeContainers()">×</button>
@@ -224,14 +224,13 @@
   <div class="side-wrapper" id="container2">
     <div class="button-panel">
       <button onclick="openContainer('container1')">설정</button>
-      <button onclick="openContainer('container2')">업로드</button>
+      <button onclick="openContainer('container2')">파일</button>
     </div>
     <div class="side-container">
       <button class="close-btn" onclick="closeContainers()">×</button>
-      <h3>📤 엑셀 파일 업로드</h3>
+      <h3>📤 업로드 된 엑셀 파일</h3>
       <form id="upload-form">
-        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" multiple />
-        <button type="submit">차트로 불러오기</button>
+        
       </form>
       <div id="result" style="margin-top:10px;"></div>
       <div id="file-list" style="margin-top:10px;"></div>
@@ -274,7 +273,7 @@ function closeChartContainer() {
             li.innerHTML = `
               ${file}
               <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
-              <button onclick="deleteFile('${file}')">🗑</button>
+              <button onclick="deleteFile('${file}')">❌</button>
             `;
             listEl.appendChild(li);
           });
@@ -317,7 +316,7 @@ function closeChartContainer() {
             li.innerHTML = `
               ${fileObj.filename}
               <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
-              <button onclick="deleteFile('${fileObj.filename}')">🗑</button>
+              <button onclick="deleteFile('${fileObj.filename}')">❌</button>
             `;
             if (fileObj.matched) {
               li.style.backgroundColor = '#fffbcc';
