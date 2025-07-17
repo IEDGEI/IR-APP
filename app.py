@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, redirect, send_from_directory, jsonify
+from flask import Flask, render_template, request, jsonify
 import os
-import pandas as pd
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -21,16 +20,15 @@ def index():
 def upload_files():
     uploaded_files = request.files.getlist('files[]')
     saved_files = []
+
     for file in uploaded_files:
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(save_path)
             saved_files.append(filename)
+
     return jsonify({'success': True, 'files': saved_files})
 
-import os
-
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # 기본값은 5000, Render는 PORT 환경변수 사용
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
