@@ -12,19 +12,13 @@
   </form>
   <div id="upload-result" style="margin-top: 10px;"></div>
 
-<input type="text" id="search-input" placeholder="검색어 입력" />
-<button onclick="searchFiles()">🔍 검색</button>
-
+  <!-- ✅ 검색어 입력창 (실시간 검색 oninput 이벤트 추가) -->
+  <input type="text" id="search-input" placeholder="검색어 입력" oninput="searchFiles()" />
 
   <h3>📂 저장된 파일 목록</h3>
   <ul id="file-list"></ul>
 
-
-  
-
   <script>
-
-    
     // 파일 목록 불러오기
     function loadFileList() {
       fetch('/files')
@@ -66,36 +60,41 @@
       }
     });
 
+    // 실시간 검색
     function searchFiles() {
-  const keyword = document.getElementById('search-input').value;
-  fetch('/search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ keyword })
-  })
-    .then(res => res.json())
-    .then(data => {
-      const listEl = document.getElementById('file-list');
-      listEl.innerHTML = '';
+      const keyword = document.getElementById('search-input').value;
+      if (keyword.trim() === '') {
+        loadFileList();  // 검색어가 없으면 전체 목록 다시 불러오기
+        return;
+      }
 
-      data.matches.forEach(fileObj => {
-        const encoded = encodeURIComponent(fileObj.filename);
-        const li = document.createElement('li');
-        li.innerHTML = `
-          ${fileObj.filename}
-          <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
-        `;
-        if (fileObj.matched) {
-          li.style.backgroundColor = '#fffbcc'; // 연노랑 강조
-          li.style.fontWeight = 'bold';
-        }
-        listEl.appendChild(li);
-      });
-    });
-}
+      fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword })
+      })
+        .then(res => res.json())
+        .then(data => {
+          const listEl = document.getElementById('file-list');
+          listEl.innerHTML = '';
 
+          data.matches.forEach(fileObj => {
+            const encoded = encodeURIComponent(fileObj.filename);
+            const li = document.createElement('li');
+            li.innerHTML = `
+              ${fileObj.filename}
+              <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
+            `;
+            if (fileObj.matched) {
+              li.style.backgroundColor = '#fffbcc'; // 강조 색
+              li.style.fontWeight = 'bold';
+            }
+            listEl.appendChild(li);
+          });
+        });
+    }
 
-    // 페이지 로딩 시 목록 불러오기
+    // 페이지 로딩 시 파일 목록 표시
     window.onload = loadFileList;
   </script>
 </body>
