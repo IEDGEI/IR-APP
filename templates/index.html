@@ -1,301 +1,57 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>IR센터 차트 시각화</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='chartstyle.css') }}">
+  <meta charset="UTF-8">
+  <title>IR센터 - 다중 파일 업로드</title>
 </head>
 <body>
-<h2>📁 파일 업로드</h2>
-<form id="upload-form">
-  <input type="file" id="file-input" name="files[]" multiple />
-  <button type="submit">업로드</button>
-</form>
+  <h2>📁 다중 파일 업로드</h2>
+  <form id="upload-form">
+    <input type="file" id="file-input" name="files[]" multiple />
+    <button type="submit">업로드</button>
+  </form>
+  <div id="upload-result" style="margin-top: 10px;"></div>
 
-<div id="upload-result"></div>
-
-
-
-
-  <div class="top-buttons" id="topButtons">
-    <button onclick="openContainer('container1')">설정</button>
-    <button onclick="openContainer('container2')">업로드</button>
-  </div>
-
-  <!-- 설정 -->
-  <div class="side-wrapper" id="container1">
-    <div class="button-panel">
-      <button onclick="openContainer('container1')">설정</button>
-      <button onclick="openContainer('container2')">업로드</button>
-    </div>
-    <div class="side-container">
-      <button class="close-btn" onclick="closeContainers()">×</button>
-      <h3>📌 차트 설정</h3>
-      <label for="x-col">X축 컬럼</label>
-      <select id="x-col"></select>
-
-      <label for="y-col">Y값 컬럼</label>
-      <select id="y-col"></select>
-
-      <label for="legend-col">범례 컬럼</label>
-      <select id="legend-col"><option value="">선택 안함</option></select>
-
-      <label for="chart-type">차트 유형</label>
-      <select id="chart-type">
-        <option value="bar">막대 그래프</option>
-        <option value="stacked-bar">스택형 막대</option>
-        <option value="line">선 그래프</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- 업로드 -->
-  <div class="side-wrapper" id="container2">
-    <div class="button-panel">
-      <button onclick="openContainer('container1')">설정</button>
-      <button onclick="openContainer('container2')">업로드</button>
-    </div>
-    <div class="side-container">
-      <button class="close-btn" onclick="closeContainers()">×</button>
-      <h3>📤 엑셀 파일 업로드</h3>
-      <form id="upload-form">
-        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" multiple />
-        <button type="submit">차트로 불러오기</button>
-      </form>
-      <div id="result" style="margin-top:10px;"></div>
-      <div id="file-list" style="margin-top:10px;"></div>
-    </div>
-  </div>
-
-  <h2>📊 차트 미리보기</h2>
-  <canvas id="myChart" width="700" height="400"></canvas>
-
-  <div class="download-buttons">
-    <button onclick="downloadChart()">이미지 다운로드</button>
-    <button onclick="downloadPdf()">PDF 저장</button>
-  </div>
+  <h3>📂 저장된 파일 목록</h3>
+  <ul id="file-list"></ul>
 
   <script>
-  document.getElementById('upload-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const files = document.getElementById('file-input').files;
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files[]', files[i]);
+    function loadFileList() {
+      fetch('/files')
+        .then(res => res.json())
+        .then(data => {
+          const listEl = document.getElementById('file-list');
+          listEl.innerHTML = '';
+          data.files.forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = file;
+            listEl.appendChild(li);
+          });
+        });
     }
 
-    const res = await fetch('/upload', {
-      method: 'POST',
-      body: formData
-    });
-    const result = await res.json();
-    if (result.success) {
-      document.getElementById('upload-result').innerText = '업로드 성공: ' + result.files.join(', ');
-    }
-  });
-
-    const topButtons = document.getElementById('topButtons');
-    const container1 = document.getElementById('container1');
-    const container2 = document.getElementById('container2');
-    const uploadForm = document.getElementById("upload-form");
-    const uploadInput = document.getElementById("file-input");
-    const resultDiv = document.getElementById("result");
-    const fileListDiv = document.getElementById("file-list");
-    const xSelect = document.getElementById("x-col");
-    const ySelect = document.getElementById("y-col");
-    const legendSelect = document.getElementById("legend-col");
-    const chartTypeSelect = document.getElementById("chart-type");
-    const chartCanvas = document.getElementById("myChart");
-
-    let jsonData = [];
-    let myChart;
-    let fileMap = {};
-
-    function openContainer(id) {
-      topButtons.classList.add('hidden');
-      container1.classList.remove('active');
-      container2.classList.remove('active');
-      document.getElementById(id).classList.add('active');
-      chartCanvas.style.marginLeft = '0';
-    }
-
-    function closeContainers() {
-      container1.classList.remove('active');
-      container2.classList.remove('active');
-      topButtons.classList.remove('hidden');
-      chartCanvas.style.marginLeft = '0';
-    }
-
-    uploadForm.addEventListener("submit", (e) => {
+    document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const files = uploadInput.files;
-      if (files.length === 0) return alert("엑셀 파일을 선택하세요!");
-
-      fileListDiv.innerHTML = "";
-      fileMap = {};
-
-      Array.from(files).forEach(file => {
-        fileMap[file.name] = file;
-
-        const container = document.createElement("div");
-        container.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#f0f0f0;";
-
-        const nameBtn = document.createElement("button");
-        nameBtn.textContent = file.name;
-        nameBtn.style.cssText = "flex:1;text-align:left;background:none;border:none;cursor:pointer;";
-        nameBtn.onclick = () => {
-          resultDiv.innerText = `✅ 선택된 파일: ${file.name}`;
-          handleLocalExcelUpload(file);
-        };
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "🗑";
-        deleteBtn.style.cssText = "border:none;background:none;cursor:pointer;";
-        deleteBtn.onclick = () => {
-          delete fileMap[file.name];
-          container.remove();
-          resultDiv.innerText = `📁 '${file.name}' 삭제됨`;
-          if (Object.keys(fileMap).length === 0) {
-            resultDiv.innerText = "📁 업로드된 파일 없음";
-            jsonData = [];
-            xSelect.innerHTML = "";
-            ySelect.innerHTML = "";
-            legendSelect.innerHTML = '<option value="">선택 안함</option>';
-            if (myChart) myChart.destroy();
-          }
-        };
-
-        container.appendChild(nameBtn);
-        container.appendChild(deleteBtn);
-        fileListDiv.appendChild(container);
-      });
-
-      resultDiv.innerText = `✅ ${files.length}개 파일 업로드 완료`;
-    });
-
-    function handleLocalExcelUpload(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-        const columns = Object.keys(jsonData[0]);
-        [xSelect, ySelect].forEach(select => {
-          select.innerHTML = "";
-          columns.forEach(col => select.appendChild(new Option(col, col)));
-        });
-        legendSelect.innerHTML = '<option value="">선택 안함</option>';
-        columns.forEach(col => legendSelect.appendChild(new Option(col, col)));
-
-        drawChart();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    [xSelect, ySelect, legendSelect, chartTypeSelect].forEach(sel => {
-      sel.addEventListener("change", drawChart);
-    });
-
-    function drawChart() {
-      if (!jsonData.length) return;
-      const xCol = xSelect.value;
-      const yCol = ySelect.value;
-      const legendCol = legendSelect.value;
-      const chartType = chartTypeSelect.value;
-      const isStacked = chartType === "stacked-bar";
-      const isLegendUsed = legendCol !== "";
-
-      const xSet = new Set();
-      const grouped = {};
-      const colors = Array.from({ length: 100 }, (_, i) => `hsl(${i * 30 % 360}, 70%, 60%)`);
-
-      if (isLegendUsed) {
-        const legendSet = new Set();
-        jsonData.forEach(row => {
-          const x = row[xCol];
-          const legend = row[legendCol];
-          const y = Number(row[yCol]) || 0;
-          xSet.add(x); legendSet.add(legend);
-          if (!grouped[legend]) grouped[legend] = {};
-          grouped[legend][x] = (grouped[legend][x] || 0) + y;
-        });
-
-        const xLabels = Array.from(xSet);
-        const legends = Array.from(legendSet);
-        const datasets = legends.map((legend, i) => ({
-          label: legend,
-          data: xLabels.map(x => grouped[legend][x] || 0),
-          backgroundColor: colors[i % colors.length],
-          borderColor: colors[i % colors.length],
-          fill: chartType !== 'line',
-          ...(isStacked && { stack: 'stack1' })
-        }));
-
-        renderChart(chartType === 'stacked-bar' ? 'bar' : chartType, xLabels, datasets, isStacked);
-      } else {
-        jsonData.forEach(row => {
-          const x = row[xCol];
-          const y = Number(row[yCol]) || 0;
-          xSet.add(x); grouped[x] = (grouped[x] || 0) + y;
-        });
-
-        const xLabels = Array.from(xSet);
-        const dataset = [{
-          label: yCol,
-          data: xLabels.map(x => grouped[x]),
-          backgroundColor: 'skyblue',
-          borderColor: 'skyblue',
-          fill: chartType !== 'line'
-        }];
-
-        renderChart(chartType === 'stacked-bar' ? 'bar' : chartType, xLabels, dataset, false);
+      const files = document.getElementById('file-input').files;
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files[]', files[i]);
       }
-    }
 
-    function renderChart(type, labels, datasets, stacked) {
-      if (myChart) myChart.destroy();
-      const ctx = chartCanvas.getContext("2d");
-      myChart = new Chart(ctx, {
-        type,
-        data: { labels, datasets },
-        options: {
-          responsive: false,
-          plugins: {
-            title: { display: true, text: "차트 미리보기" },
-            legend: { display: true, position: 'top' }
-          },
-          scales: {
-            x: {
-              stacked, offset: true,
-              categoryPercentage: stacked ? 0.8 : 0.6,
-              barPercentage: stacked ? 1.0 : 0.9,
-              ticks: { align: 'center' }
-            },
-            y: { stacked, beginAtZero: true }
-          }
-        }
+      const res = await fetch('/upload', {
+        method: 'POST',
+        body: formData
       });
-    }
 
-    function downloadChart() {
-      const a = document.createElement("a");
-      a.href = chartCanvas.toDataURL("image/png");
-      a.download = "chart.png";
-      a.click();
-    }
+      const result = await res.json();
+      if (result.success) {
+        document.getElementById('upload-result').innerText =
+          `✅ 업로드 완료: ${result.files.join(', ')}`;
+        loadFileList();
+      }
+    });
 
-    async function downloadPdf() {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-      const imgData = chartCanvas.toDataURL("image/png");
-      pdf.addImage(imgData, 'PNG', 10, 10, 180, 100);
-      pdf.save("chart.pdf");
-    }
+    window.onload = loadFileList;
   </script>
 </body>
 </html>
