@@ -3,8 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>IR센터 - 다중 파일 업로드</title>
+  <style>
+    /* 컨테이너 스타일 */
+    #fullscreen-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    #open-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+    }
+  </style>
 </head>
 <body>
+  <!-- 🔘 오른쪽 상단 열기 버튼 -->
+  <button id="open-btn" onclick="openContainer()">📊 차트 보기</button>
+
+  <!-- 📦 화면 전체 덮는 컨테이너 -->
+  <div id="fullscreen-container">
+    <button class="close-btn" onclick="closeContainer()">×</button>
+    <h2 style="margin-top: 60px; text-align:center;">📊 여기 원하는 콘텐츠를 넣으세요</h2>
+  </div>
+
   <h2>📁 다중 파일 업로드</h2>
   <form id="upload-form">
     <input type="file" id="file-input" name="files[]" multiple />
@@ -12,14 +50,20 @@
   </form>
   <div id="upload-result" style="margin-top: 10px;"></div>
 
-  <!-- ✅ 검색어 입력창 -->
   <input type="text" id="search-input" placeholder="검색어 입력" oninput="searchFiles()" />
-
   <h3>📂 저장된 파일 목록</h3>
   <ul id="file-list"></ul>
 
   <script>
-    // 파일 목록 불러오기
+    // 📦 열기/닫기 컨트롤
+    function openContainer() {
+      document.getElementById('fullscreen-container').style.display = 'flex';
+    }
+    function closeContainer() {
+      document.getElementById('fullscreen-container').style.display = 'none';
+    }
+
+    // 🔁 목록 불러오기
     function loadFileList() {
       fetch('/files')
         .then(res => res.json())
@@ -39,7 +83,7 @@
         });
     }
 
-    // 파일 업로드 처리
+    // 📤 업로드
     document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const files = document.getElementById('file-input').files;
@@ -57,19 +101,15 @@
       if (result.success) {
         document.getElementById('upload-result').innerText =
           `✅ 업로드 완료: ${result.files.join(', ')}`;
-        loadFileList(); // 목록 새로고침
+        loadFileList();
       }
     });
 
-    // 실시간 검색
+    // 🔍 실시간 검색
     function searchFiles() {
       const keyword = document.getElementById('search-input').value.trim();
       const listEl = document.getElementById('file-list');
-
-      if (keyword === '') {
-        loadFileList();
-        return;
-      }
+      if (keyword === '') return loadFileList();
 
       fetch('/search', {
         method: 'POST',
@@ -96,7 +136,7 @@
         });
     }
 
-    // 파일 삭제 요청
+    // 🗑 삭제
     function deleteFile(filename) {
       if (!confirm(`'${filename}' 파일을 삭제할까요?`)) return;
 
@@ -109,7 +149,7 @@
         .then(data => {
           if (data.success) {
             alert(`'${filename}' 삭제 완료`);
-            searchFiles();  // 현재 검색 상태 유지
+            searchFiles();
           } else {
             alert(`삭제 실패: ${data.error}`);
           }
