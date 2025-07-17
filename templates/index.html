@@ -445,6 +445,32 @@ function closeChartContainer() {
       resultDiv.innerText = `✅ ${files.length}개 파일 업로드 완료`;
     });
 
+async function loadServerExcelList() {
+  const res = await fetch('/files');
+  const data = await res.json();
+  const listEl = document.getElementById('server-excel-list');
+  listEl.innerHTML = '';
+
+  // ✅ 여기가 핵심: 엑셀만 필터링
+  const excelFiles = data.files.filter(f => f.match(/\.(xlsx|xls|csv)$/i));
+
+  if (excelFiles.length === 0) {
+    listEl.innerHTML = '<li>엑셀 파일 없음</li>';
+    return;
+  }
+
+  excelFiles.forEach(file => {
+    const encoded = encodeURIComponent(file);
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.textContent = file;
+    btn.style = 'border:none;background:none;color:#2563eb;text-decoration:underline;cursor:pointer;';
+    btn.onclick = () => fetchAndLoadExcel(`/static/uploads/${encoded}`);
+    li.appendChild(btn);
+    listEl.appendChild(li);
+  });
+}
+
     function handleLocalExcelUpload(file) {
       const reader = new FileReader();
       reader.onload = (e) => {
