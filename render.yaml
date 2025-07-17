@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: ir-flask-app
+    name: IR-APP-1
     env: python
-    buildCommand: ""
-    startCommand: "python app.py"
-    envVars:
-      - key: FLASK_ENV
-        value: production
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    plan: free
+    region: oregon
+    autoDeploy: true
