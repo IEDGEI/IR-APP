@@ -16,6 +16,7 @@
   <ul id="file-list"></ul>
 
   <script>
+    // 파일 목록 불러오기
     function loadFileList() {
       fetch('/files')
         .then(res => res.json())
@@ -24,12 +25,17 @@
           listEl.innerHTML = '';
           data.files.forEach(file => {
             const li = document.createElement('li');
-            li.textContent = file;
+            const encoded = encodeURIComponent(file); // 한글 파일명 처리
+            li.innerHTML = `
+              ${file}
+              <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
+            `;
             listEl.appendChild(li);
           });
         });
     }
 
+    // 파일 업로드 처리
     document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const files = document.getElementById('file-input').files;
@@ -47,10 +53,11 @@
       if (result.success) {
         document.getElementById('upload-result').innerText =
           `✅ 업로드 완료: ${result.files.join(', ')}`;
-        loadFileList();
+        loadFileList(); // 목록 새로고침
       }
     });
 
+    // 페이지 로딩 시 목록 불러오기
     window.onload = loadFileList;
   </script>
 </body>
