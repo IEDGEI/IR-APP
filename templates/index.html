@@ -389,58 +389,6 @@ function openChartContainer(mode) {
     `;
   }
 }
-async function loadExcelFileList() {
-  const res = await fetch('/files');
-  const data = await res.json();
-  const excelFiles = data.files.filter(f => f.endsWith('.xlsx') || f.endsWith('.xls'));
-
-  const baseSel = document.getElementById('base-select');
-  const mergeSel = document.getElementById('merge-select');
-  baseSel.innerHTML = '';
-  mergeSel.innerHTML = '';
-
-  excelFiles.forEach(f => {
-    const opt1 = document.createElement('option');
-    opt1.value = f;
-    opt1.textContent = f;
-    baseSel.appendChild(opt1);
-
-    const opt2 = document.createElement('option');
-    opt2.value = f;
-    opt2.textContent = f;
-    mergeSel.appendChild(opt2.cloneNode(true));
-  });
-}
-
-document.getElementById('merge-btn').addEventListener('click', async () => {
-  const file1 = document.getElementById('base-select').value;
-  const file2 = document.getElementById('merge-select').value;
-
-  if (!file1 || !file2 || file1 === file2) {
-    alert('서로 다른 두 개의 엑셀 파일을 선택하세요!');
-    return;
-  }
-
-  const res = await fetch('/merge_custom_horizontal_named', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file1, file2 })
-  });
-
-  if (res.ok) {
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'merged_result.xlsx';
-    a.click();
-    URL.revokeObjectURL(url);
-  } else {
-    alert('병합 실패!');
-  }
-});
-
-window.onload = loadExcelFileList;
 
 function closeChartContainer() {
   const chartContainer = document.getElementById('chart-container');
