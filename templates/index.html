@@ -1,13 +1,144 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>IR센터 - 파일 업로드 및 차트 시각화</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='chartstyle.css') }}">
+ <link rel="stylesheet" href="{{ url_for('static', filename='chartstyle.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
+#chart-container canvas {
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin: 2rem auto 1rem;
+  display: block;
+}
+
+#chart-container .download-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+#chart-container .download-buttons button {
+  padding: 8px 14px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#chart-container .top-buttons {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+
+#chart-container .top-buttons.hidden {
+  display: none;
+}
+
+#chart-container .top-buttons button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#chart-container .side-wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: none;
+  flex-direction: row;
+  z-index: 999;
+}
+
+#chart-container .side-wrapper.active {
+  display: flex;
+}
+
+#chart-container .button-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  background-color: #e0e0e0;
+}
+
+#chart-container .button-panel button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#chart-container .side-container {
+  width: 20vw;
+  height: 100%;
+  background-color: #f9f9f9;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  position: relative;
+  overflow-y: auto;
+}
+
+#chart-container .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+#chart-container label {
+  font-weight: bold;
+  margin: 10px 0 5px;
+}
+
+#chart-container select,
+#chart-container input[type="file"] {
+  font-size: 1rem;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+
+  #chart-container canvas {
+      background-color: white;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin: 2rem auto 1rem;
+      display: block;
+    }
+
+  #chart-container .download-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+   #chart-container .download-buttons button {
+      padding: 8px 14px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
     #chart-container {
       display: none;
       position: fixed;
@@ -18,95 +149,6 @@
       z-index: 9999;
       overflow-y: auto;
       padding: 20px;
-    }
-    #chart-container canvas {
-      background-color: white;
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin: 2rem auto 1rem;
-      display: block;
-    }
-    #chart-container .download-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 2rem;
-    }
-    #chart-container .download-buttons button {
-      padding: 8px 14px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #chart-container .top-buttons {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 1000;
-    }
-    #chart-container .top-buttons.hidden { display: none; }
-    #chart-container .top-buttons button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #chart-container .side-wrapper {
-      position: fixed;
-      top: 0;
-      right: 0;
-      height: 100%;
-      display: none;
-      flex-direction: row;
-      z-index: 999;
-    }
-    #chart-container .side-wrapper.active { display: flex; }
-    #chart-container .button-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      background-color: #e0e0e0;
-    }
-    #chart-container .button-panel button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #chart-container .side-container {
-      width: 20vw;
-      height: 100%;
-      background-color: #f9f9f9;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      position: relative;
-      overflow-y: auto;
-    }
-    #chart-container .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #chart-container label {
-      font-weight: bold;
-      margin: 10px 0 5px;
-    }
-    #chart-container select,
-    #chart-container input[type="file"] {
-      font-size: 1rem;
-      padding: 0.4rem 0.6rem;
-      margin-bottom: 1rem;
-      width: 100%;
     }
     #open-chart-btn {
       position: fixed;
@@ -129,170 +171,119 @@
   <!-- 🔘 차트 열기 버튼 -->
   <button id="open-chart-btn" onclick="openChartContainer()">📊 차트 보기</button>
 
-  <!-- ✅ 메인 파일 업로드 + 검색 -->
+  <!-- ✅ 기본 파일 업로드 + 검색 -->
   <h2>📁 다중 파일 업로드</h2>
-  <form id="upload-form-main">
-    <input type="file" id="file-input-main" name="files[]" multiple />
+  <form id="upload-form">
+    <input type="file" id="file-input" name="files[]" multiple />
     <button type="submit">업로드</button>
   </form>
   <div id="upload-result" style="margin-top: 10px;"></div>
-
   <input type="text" id="search-input" placeholder="검색어 입력" oninput="searchFiles()" />
   <h3>📂 저장된 파일 목록</h3>
-  <ul id="file-list-main"></ul>
+  <ul id="file-list"></ul>
 
   <!-- 📦 차트 전체화면 컨테이너 -->
   <div id="chart-container">
-    <button id="close-chart-btn" onclick="closeChartContainer()">×</button>
+     <button id="close-chart-btn" onclick="closeChartContainer()">×</button>
+ 
 
-    <div class="top-buttons" id="topButtons">
+
+  <div class="top-buttons" id="topButtons">
+    <button onclick="openContainer('container1')">설정</button>
+    <button onclick="openContainer('container2')">업로드</button>
+  </div>
+
+  <!-- 설정 -->
+  <div class="side-wrapper" id="container1">
+    <div class="button-panel">
       <button onclick="openContainer('container1')">설정</button>
       <button onclick="openContainer('container2')">업로드</button>
     </div>
+    <div class="side-container">
+      <button class="close-btn" onclick="closeContainers()">×</button>
+      <h3>📌 차트 설정</h3>
+      <label for="x-col">X축 컬럼</label>
+      <select id="x-col"></select>
 
-    <!-- 설정 패널 -->
-    <div class="side-wrapper" id="container1">
-      <div class="button-panel">
-        <button onclick="openContainer('container1')">설정</button>
-        <button onclick="openContainer('container2')">업로드</button>
-      </div>
-      <div class="side-container">
-        <button class="close-btn" onclick="closeContainers()">×</button>
-        <h3>📌 차트 설정</h3>
+      <label for="y-col">Y값 컬럼</label>
+      <select id="y-col"></select>
 
-        <label for="x-col">X축 컬럼</label>
-        <select id="x-col"></select>
+      <label for="legend-col">범례 컬럼</label>
+      <select id="legend-col"><option value="">선택 안함</option></select>
 
-        <label for="y-col">Y값 컬럼</label>
-        <select id="y-col"></select>
-
-        <label for="legend-col">범례 컬럼</label>
-        <select id="legend-col"><option value="">선택 안함</option></select>
-
-        <label for="chart-type">차트 유형</label>
-        <select id="chart-type">
-          <option value="bar">막대 그래프</option>
-          <option value="stacked-bar">스택형 막대</option>
-          <option value="line">선 그래프</option>
-        </select>
-      </div>
+      <label for="chart-type">차트 유형</label>
+      <select id="chart-type">
+        <option value="bar">막대 그래프</option>
+        <option value="stacked-bar">스택형 막대</option>
+        <option value="line">선 그래프</option>
+      </select>
     </div>
-    <!-- 업로드 패널 -->
-    <div class="side-wrapper" id="container2">
-      <div class="button-panel">
-        <button onclick="openContainer('container1')">설정</button>
-        <button onclick="openContainer('container2')">업로드</button>
-      </div>
-      <div class="side-container">
-        <button class="close-btn" onclick="closeContainers()">×</button>
-        <h3>📤 엑셀 파일 업로드</h3>
+  </div>
 
-        <form id="upload-form-side">
-          <input type="file" id="file-input-side" accept=".xlsx,.xls,.csv" multiple />
-          <button type="submit">차트로 불러오기</button>
-        </form>
-
-        <div id="result" style="margin-top:10px;"></div>
-        <div id="file-list-side" style="margin-top:10px;"></div>
-      </div>
+  <!-- 업로드 -->
+  <div class="side-wrapper" id="container2">
+    <div class="button-panel">
+      <button onclick="openContainer('container1')">설정</button>
+      <button onclick="openContainer('container2')">업로드</button>
     </div>
-
-    <h2>📊 차트 미리보기</h2>
-    <canvas id="myChart" width="700" height="400"></canvas>
-
-    <div class="download-buttons">
-      <button onclick="downloadChart()">이미지 다운로드</button>
-      <button onclick="downloadPdf()">PDF 저장</button>
+    <div class="side-container">
+      <button class="close-btn" onclick="closeContainers()">×</button>
+      <h3>📤 엑셀 파일 업로드</h3>
+      <form id="upload-form">
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" multiple />
+        <button type="submit">차트로 불러오기</button>
+      </form>
+      <div id="result" style="margin-top:10px;"></div>
+      <div id="file-list" style="margin-top:10px;"></div>
     </div>
-  </div> <!-- #chart-container 닫힘 -->
+  </div>
 
-  <!-- JavaScript 시작 -->
+  <h2>📊 차트 미리보기</h2>
+  <canvas id="myChart" width="700" height="400"></canvas>
+
+  <div class="download-buttons">
+    <button onclick="downloadChart()">이미지 다운로드</button>
+    <button onclick="downloadPdf()">PDF 저장</button>
+  </div>
+  </div>
+
   <script>
-    function openChartContainer() {
-      document.getElementById('chart-container').style.display = 'block';
-      document.getElementById('open-chart-btn').style.display = 'none';
+
+// 차트보기 버튼 상호작용
+function openChartContainer() {
+  document.getElementById('chart-container').style.display = 'block';
+  document.getElementById('open-chart-btn').style.display = 'none';  // 👈 버튼 숨김
+}
+//차트보기 재활성화
+
+function closeChartContainer() {
+  document.getElementById('chart-container').style.display = 'none';
+  document.getElementById('open-chart-btn').style.display = 'inline-block';  // 👈 차트 보기 버튼 다시 표시
+}
+
+    // 기본 파일 업로드 + 검색
+    function loadFileList() {
+      fetch('/files')
+        .then(res => res.json())
+        .then(data => {
+          const listEl = document.getElementById('file-list');
+          listEl.innerHTML = '';
+          data.files.forEach(file => {
+            const encoded = encodeURIComponent(file);
+            const li = document.createElement('li');
+            li.innerHTML = `
+              ${file}
+              <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
+              <button onclick="deleteFile('${file}')">❌ 삭제</button>
+            `;
+            listEl.appendChild(li);
+          });
+        });
     }
 
-    function closeChartContainer() {
-      document.getElementById('chart-container').style.display = 'none';
-      document.getElementById('open-chart-btn').style.display = 'inline-block';
-    }
-
-    function openContainer(id) {
-      document.getElementById('topButtons').classList.add('hidden');
-      document.getElementById('container1').classList.remove('active');
-      document.getElementById('container2').classList.remove('active');
-      document.getElementById(id).classList.add('active');
-    }
-
-    function closeContainers() {
-      document.getElementById('container1').classList.remove('active');
-      document.getElementById('container2').classList.remove('active');
-      document.getElementById('topButtons').classList.remove('hidden');
-    }
-    async function loadFileList() {
-      const res = await fetch('/files');
-      const data = await res.json();
-      const listEl = document.getElementById('file-list-main');
-      listEl.innerHTML = '';
-      data.files.forEach(file => {
-        const encoded = encodeURIComponent(file);
-        const li = document.createElement('li');
-        li.innerHTML = `
-          ${file}
-          <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
-          <button onclick="deleteFile('${file}')">❌ 삭제</button>
-          <button onclick="uploadExcelWithOneFile('${file}', '/static/uploads/${encoded}')">📤 엑셀로 업로드</button>
-        `;
-        listEl.appendChild(li);
-      });
-    }
-
-    async function deleteFile(filename) {
-      if (!confirm(`'${filename}' 파일을 삭제할까요?`)) return;
-      const res = await fetch('/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename })
-      });
-      const result = await res.json();
-      if (result.success) {
-        alert(`삭제 완료`);
-        loadFileList();
-      } else {
-        alert('삭제 실패');
-      }
-    }
-
-    async function uploadExcelWithOneFile(filename, fileUrl) {
-      const data = [{ 파일명: filename, 다운로드링크: fileUrl }];
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "파일정보");
-
-      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: 'application/octet-stream' });
-
-      const formData = new FormData();
-      const excelName = `파일_${filename.replace(/\.[^/.]+$/, '')}.xlsx`;
-      formData.append('files[]', new File([blob], excelName));
-
-      const res = await fetch('/upload', {
-        method: 'POST',
-        body: formData
-      });
-      const result = await res.json();
-      if (result.success) {
-        alert(`✅ ${excelName} 업로드 완료`);
-        loadFileList();
-      } else {
-        alert(`❌ 업로드 실패`);
-      }
-    }
-
-    document.getElementById('upload-form-main').addEventListener('submit', async function (e) {
+    document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const files = document.getElementById('file-input-main').files;
+      const files = document.getElementById('file-input').files;
       const formData = new FormData();
       for (let i = 0; i < files.length; i++) {
         formData.append('files[]', files[i]);
@@ -310,8 +301,8 @@
 
     function searchFiles() {
       const keyword = document.getElementById('search-input').value.trim();
+      const listEl = document.getElementById('file-list');
       if (keyword === '') return loadFileList();
-
       fetch('/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -319,7 +310,6 @@
       })
         .then(res => res.json())
         .then(data => {
-          const listEl = document.getElementById('file-list-main');
           listEl.innerHTML = '';
           data.matches.forEach(fileObj => {
             const encoded = encodeURIComponent(fileObj.filename);
@@ -328,7 +318,6 @@
               ${fileObj.filename}
               <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
               <button onclick="deleteFile('${fileObj.filename}')">❌ 삭제</button>
-              <button onclick="uploadExcelWithOneFile('${fileObj.filename}', '/static/uploads/${encoded}')">📤 엑셀로 업로드</button>
             `;
             if (fileObj.matched) {
               li.style.backgroundColor = '#fffbcc';
@@ -339,14 +328,143 @@
         });
     }
 
-    // 차트 관련 설정
+    function deleteFile(filename) {
+      if (!confirm(`'${filename}' 파일을 삭제할까요?`)) return;
+      fetch('/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert(`'${filename}' 삭제 완료`);
+            searchFiles();
+          } else {
+            alert(`삭제 실패: ${data.error}`);
+          }
+        });
+    }
+
+    window.onload = loadFileList;
+
+    document.getElementById('upload-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const files = document.getElementById('file-input').files;
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files[]', files[i]);
+    }
+
+    const res = await fetch('/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('upload-result').innerText = '업로드 성공: ' + result.files.join(', ');
+    }
+  });
+
+    const topButtons = document.getElementById('topButtons');
+    const container1 = document.getElementById('container1');
+    const container2 = document.getElementById('container2');
+    const uploadForm = document.getElementById("upload-form");
+    const uploadInput = document.getElementById("file-input");
+    const resultDiv = document.getElementById("result");
+    const fileListDiv = document.getElementById("file-list");
     const xSelect = document.getElementById("x-col");
     const ySelect = document.getElementById("y-col");
     const legendSelect = document.getElementById("legend-col");
     const chartTypeSelect = document.getElementById("chart-type");
     const chartCanvas = document.getElementById("myChart");
+
     let jsonData = [];
     let myChart;
+    let fileMap = {};
+
+    function openContainer(id) {
+      topButtons.classList.add('hidden');
+      container1.classList.remove('active');
+      container2.classList.remove('active');
+      document.getElementById(id).classList.add('active');
+      chartCanvas.style.marginLeft = '0';
+    }
+
+    function closeContainers() {
+      container1.classList.remove('active');
+      container2.classList.remove('active');
+      topButtons.classList.remove('hidden');
+      chartCanvas.style.marginLeft = '0';
+    }
+
+    uploadForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const files = uploadInput.files;
+      if (files.length === 0) return alert("엑셀 파일을 선택하세요!");
+
+      fileListDiv.innerHTML = "";
+      fileMap = {};
+
+      Array.from(files).forEach(file => {
+        fileMap[file.name] = file;
+
+        const container = document.createElement("div");
+        container.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#f0f0f0;";
+
+        const nameBtn = document.createElement("button");
+        nameBtn.textContent = file.name;
+        nameBtn.style.cssText = "flex:1;text-align:left;background:none;border:none;cursor:pointer;";
+        nameBtn.onclick = () => {
+          resultDiv.innerText = `✅ 선택된 파일: ${file.name}`;
+          handleLocalExcelUpload(file);
+        };
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "🗑";
+        deleteBtn.style.cssText = "border:none;background:none;cursor:pointer;";
+        deleteBtn.onclick = () => {
+          delete fileMap[file.name];
+          container.remove();
+          resultDiv.innerText = `📁 '${file.name}' 삭제됨`;
+          if (Object.keys(fileMap).length === 0) {
+            resultDiv.innerText = "📁 업로드된 파일 없음";
+            jsonData = [];
+            xSelect.innerHTML = "";
+            ySelect.innerHTML = "";
+            legendSelect.innerHTML = '<option value="">선택 안함</option>';
+            if (myChart) myChart.destroy();
+          }
+        };
+
+        container.appendChild(nameBtn);
+        container.appendChild(deleteBtn);
+        fileListDiv.appendChild(container);
+      });
+
+      resultDiv.innerText = `✅ ${files.length}개 파일 업로드 완료`;
+    });
+
+    function handleLocalExcelUpload(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        const columns = Object.keys(jsonData[0]);
+        [xSelect, ySelect].forEach(select => {
+          select.innerHTML = "";
+          columns.forEach(col => select.appendChild(new Option(col, col)));
+        });
+        legendSelect.innerHTML = '<option value="">선택 안함</option>';
+        columns.forEach(col => legendSelect.appendChild(new Option(col, col)));
+
+        drawChart();
+      };
+      reader.readAsArrayBuffer(file);
+    }
 
     [xSelect, ySelect, legendSelect, chartTypeSelect].forEach(sel => {
       sel.addEventListener("change", drawChart);
@@ -448,7 +566,8 @@
       pdf.save("chart.pdf");
     }
 
-    window.onload = loadFileList;
+
+    
   </script>
 </body>
 </html>
