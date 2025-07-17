@@ -1,15 +1,22 @@
 import os
+import re
 from flask import Flask, render_template, request, jsonify
-from werkzeug.utils import secure_filename
+from urllib.parse import quote
 
 app = Flask(__name__)
 
 # 업로드 폴더 설정
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# 업로드 폴더 없으면 생성
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# ⚠️ 파일명에서 위험한 문자는 제거하되 한글, 영문, 숫자, 일부 특수문자만 허용
+def sanitize_filename(filename):
+    # 폴더 경로 제거 + 확장자 분리
+    name, ext = os.path.splitext(os.path.basename(filename))
+    # 한글, 영문, 숫자, 일부 기호만 허용
+    name = re.sub(r'[^가-힣a-zA-Z0-9_\-\(\)\[\]\s]', '', name)
+    return f"{name}{ext}"
 
 # index 페이지
 @app.route('/')
@@ -23,9 +30,10 @@ def upload_files():
     saved_files = []
 
     for file in uploaded_files:
-        filename = secure_filename(file.filename)
-        if filename:
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        if file.filename:
+            filename = sanitize_filename(file.filename)  # 한글 포함 안전 필터링
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(save_path)
             saved_files.append(filename)
 
     return jsonify({'success': True, 'files': saved_files})
@@ -41,5 +49,5 @@ def list_files():
 
 # Render 배포용 실행
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render가 지정한 포트
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
