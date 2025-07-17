@@ -12,10 +12,19 @@
   </form>
   <div id="upload-result" style="margin-top: 10px;"></div>
 
+<input type="text" id="search-input" placeholder="검색어 입력" />
+<button onclick="searchFiles()">🔍 검색</button>
+
+
   <h3>📂 저장된 파일 목록</h3>
   <ul id="file-list"></ul>
 
+
+  
+
   <script>
+
+    
     // 파일 목록 불러오기
     function loadFileList() {
       fetch('/files')
@@ -56,6 +65,35 @@
         loadFileList(); // 목록 새로고침
       }
     });
+
+    function searchFiles() {
+  const keyword = document.getElementById('search-input').value;
+  fetch('/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keyword })
+  })
+    .then(res => res.json())
+    .then(data => {
+      const listEl = document.getElementById('file-list');
+      listEl.innerHTML = '';
+
+      data.matches.forEach(fileObj => {
+        const encoded = encodeURIComponent(fileObj.filename);
+        const li = document.createElement('li');
+        li.innerHTML = `
+          ${fileObj.filename}
+          <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
+        `;
+        if (fileObj.matched) {
+          li.style.backgroundColor = '#fffbcc'; // 연노랑 강조
+          li.style.fontWeight = 'bold';
+        }
+        listEl.appendChild(li);
+      });
+    });
+}
+
 
     // 페이지 로딩 시 목록 불러오기
     window.onload = loadFileList;
