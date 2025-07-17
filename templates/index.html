@@ -180,7 +180,7 @@
   <div id="upload-result" style="margin-top: 10px;"></div>
   <input type="text" id="search-input" placeholder="검색어 입력" oninput="searchFiles()" />
   <h3>📂 저장된 파일 목록</h3>
-  <ul id="file-list"></ul>
+  <ul id="file-list2"></ul>
 
   <!-- 📦 차트 전체화면 컨테이너 -->
   <div id="chart-container">
@@ -266,7 +266,7 @@ function closeChartContainer() {
       fetch('/files')
         .then(res => res.json())
         .then(data => {
-          const listEl = document.getElementById('file-list');
+          const listEl = document.getElementById('file-list2');
           listEl.innerHTML = '';
           data.files.forEach(file => {
             const encoded = encodeURIComponent(file);
@@ -301,7 +301,7 @@ function closeChartContainer() {
 
     function searchFiles() {
       const keyword = document.getElementById('search-input').value.trim();
-      const listEl = document.getElementById('file-list');
+      const listEl = document.getElementById('file-list2');
       if (keyword === '') return loadFileList();
       fetch('/search', {
         method: 'POST',
