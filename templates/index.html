@@ -201,6 +201,23 @@
   box-shadow: 0 2px 5px rgba(180, 123, 255, 0.15);
 }
 
+.search-wrapper {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+#search-input {
+  width: 60%;
+  padding: 10px 14px;
+  border: 2px solid #b47bff;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f7f3ff;
+  color: #4b0082;
+  box-shadow: 0 2px 5px rgba(180, 123, 255, 0.15);
+}
+
 #search-input::placeholder {
   color: #a27bd8;
 }
@@ -250,6 +267,31 @@
   color: #7e22ce;
   cursor: pointer;
 }
+#upload-result {
+  background-color: #ece4fb;
+  border: 1px solid #b47bff;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  color: #4b0082;
+}
+
+.upload-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 8px;
+}
+
+.upload-list li {
+  background: #f7f0ff;
+  border: 1px solid #d8b4fe;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #5b2c91;
+}
+
 
   </style>
 </head>
@@ -358,7 +400,7 @@ function closeChartContainer() {
             const li = document.createElement('li');
             li.innerHTML = `
               ${file}
-              <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
+              <a href="/static/uploads/${encoded}" target="_blank">[다운로드]</a>
               <button onclick="deleteFile('${file}')">❌</button>
             `;
             listEl.appendChild(li);
@@ -379,7 +421,11 @@ function closeChartContainer() {
       });
       const result = await res.json();
       if (result.success) {
-        document.getElementById('upload-result').innerText = `✅ 업로드 완료: ${result.files.join(', ')}`;
+        const resultBox = document.getElementById('upload-result');
+resultBox.innerHTML = `<strong>✅ 업로드 완료:</strong>`;
+resultBox.innerHTML += `<ul class="upload-list">` +
+  result.files.map(f => `<li>${f}</li>`).join('') +
+  `</ul>`;
         loadFileList();
       }
     });
