@@ -375,20 +375,80 @@ function openChartContainer(mode) {
   if (mode === 'dataset') {
     chartContainer.innerHTML = `
       <button id="close-chart-btn" onclick="closeChartContainer()">×</button>
-    <h3>📊 엑셀 병합</h3>
-<div id="merge-section">
-  <label for="base-select">기준 엑셀:</label>
-  <select id="base-select"></select>
+ <!-- 데이터 셋 병합 UI -->
+<div id="dataset-merge-ui">
+  <h3>📑 엑셀 병합 (기준 + 병합)</h3>
 
-  <label for="merge-select">병합 엑셀:</label>
-  <select id="merge-select"></select>
+  <label for="base-select">기준 엑셀 선택</label><br>
+  <select id="base-select" style="width: 300px; margin-bottom: 10px;"></select><br>
 
-  <button id="merge-btn">병합 결과 다운로드</button>
+  <label for="merge-select">병합 엑셀 선택</label><br>
+  <select id="merge-select" style="width: 300px; margin-bottom: 10px;"></select><br>
+
+  <button id="merge-btn">📥 병합 결과 다운로드</button>
 </div>
 
     `;
   }
 }
+// 병합 UI: 엑셀 파일 목록 불러오기
+async function loadExcelOptions() {
+  const res = await fetch('/files');
+  const data = await res.json();
+  const excelFiles = data.files.filter(f => f.endsWith('.xlsx') || f.endsWith('.xls'));
+
+  const baseSelect = document.getElementById('base-select');
+  const mergeSelect = document.getElementById('merge-select');
+
+  baseSelect.innerHTML = '';
+  mergeSelect.innerHTML = '';
+
+  excelFiles.forEach(f => {
+    const opt1 = document.createElement('option');
+    opt1.value = f;
+    opt1.textContent = f;
+    baseSelect.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = f;
+    opt2.textContent = f;
+    mergeSelect.appendChild(opt2.cloneNode(true));
+  });
+}
+
+// 병합 요청 처리
+document.getElementById('merge-btn').addEventListener('click', async () => {
+  const file1 = document.getElementById('base-select').value;
+  const file2 = document.getElementById('merge-select').value;
+
+  if (!file1 || !file2 || file1 === file2) {
+    alert('서로 다른 엑셀 파일 2개를 선택해주세요!');
+    return;
+  }
+
+  const res = await fetch('/merge_custom_horizontal_named', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file1, file2 })
+  });
+
+  if (res.ok) {
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'merged_result.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    alert('병합 실패! 서버 오류가 발생했을 수 있습니다.');
+  }
+});
+
+// 데이터 셋 열릴 때 자동으로 엑셀 옵션 불러오기
+document.getElementById('open-dataset-btn').addEventListener('click', () => {
+  setTimeout(loadExcelOptions, 300);  // 약간의 delay로 UI 렌더링 이후 실행
+});
 
 function closeChartContainer() {
   const chartContainer = document.getElementById('chart-container');
