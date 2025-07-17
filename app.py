@@ -48,7 +48,25 @@ def list_files():
     except FileNotFoundError:
         return jsonify({'files': []})
 
-# 파일 제목 또는 내용에서 키워드 검색
+# 🔥 파일 삭제 처리
+@app.route('/delete', methods=['POST'])
+def delete_file():
+    data = request.get_json()
+    filename = data.get('filename')
+    if not filename:
+        return jsonify({'success': False, 'error': '파일명이 누락됨'})
+
+    try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': '파일이 존재하지 않음'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# 🔍 파일 제목 또는 내용에서 키워드 검색
 @app.route('/search', methods=['POST'])
 def search_files():
     keyword = request.json.get('keyword', '').strip()
@@ -78,7 +96,7 @@ def search_files():
             elif ext == '.docx':
                 doc = docx.Document(file_path)
                 content = '\n'.join([p.text for p in doc.paragraphs])
-            # (.hwp 는 별도 처리 필요)
+            # (.hwp 는 웹에서 지원 제외)
             match_content = keyword in content
 
         except Exception as e:
@@ -89,7 +107,7 @@ def search_files():
             'matched': match_title or match_content
         })
 
-    # 일치한 파일 먼저 정렬
+    # 매칭된 파일을 먼저 보여줌
     results.sort(key=lambda x: not x['matched'])
 
     return jsonify({'matches': results})
