@@ -274,7 +274,7 @@ function closeChartContainer() {
             li.innerHTML = `
               ${file}
               <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
-              <button onclick="deleteFile('${file}')">❌ 삭제</button>
+              <button onclick="deleteFile('${file}')">🗑</button>
             `;
             listEl.appendChild(li);
           });
@@ -317,7 +317,7 @@ function closeChartContainer() {
             li.innerHTML = `
               ${fileObj.filename}
               <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
-              <button onclick="deleteFile('${fileObj.filename}')">❌ 삭제</button>
+              <button onclick="deleteFile('${fileObj.filename}')">🗑</button>
             `;
             if (fileObj.matched) {
               li.style.backgroundColor = '#fffbcc';
@@ -406,70 +406,50 @@ function closeChartContainer() {
       fileListDiv.innerHTML = "";
       fileMap = {};
 
-      Array.from(files).forEach(file => {
-        fileMap[file.name] = file;
+const allowedExtensions = /\.(xlsx|xls|csv)$/i;
 
-        const container = document.createElement("div");
-        container.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#f0f0f0;";
+Array.from(files).forEach(file => {
+  if (!allowedExtensions.test(file.name)) return;  // ❌ 엑셀 아닌 파일은 건너뜀
 
-        const nameBtn = document.createElement("button");
-        nameBtn.textContent = file.name;
-        nameBtn.style.cssText = "flex:1;text-align:left;background:none;border:none;cursor:pointer;";
-        nameBtn.onclick = () => {
-          resultDiv.innerText = `✅ 선택된 파일: ${file.name}`;
-          handleLocalExcelUpload(file);
-        };
+  fileMap[file.name] = file;
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "🗑";
-        deleteBtn.style.cssText = "border:none;background:none;cursor:pointer;";
-        deleteBtn.onclick = () => {
-          delete fileMap[file.name];
-          container.remove();
-          resultDiv.innerText = `📁 '${file.name}' 삭제됨`;
-          if (Object.keys(fileMap).length === 0) {
-            resultDiv.innerText = "📁 업로드된 파일 없음";
-            jsonData = [];
-            xSelect.innerHTML = "";
-            ySelect.innerHTML = "";
-            legendSelect.innerHTML = '<option value="">선택 안함</option>';
-            if (myChart) myChart.destroy();
-          }
-        };
+  const container = document.createElement("div");
+  container.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#f0f0f0;";
 
-        container.appendChild(nameBtn);
-        container.appendChild(deleteBtn);
-        fileListDiv.appendChild(container);
-      });
+  const nameBtn = document.createElement("button");
+  nameBtn.textContent = file.name;
+  nameBtn.style.cssText = "flex:1;text-align:left;background:none;border:none;cursor:pointer;";
+  nameBtn.onclick = () => {
+    resultDiv.innerText = `✅ 선택된 파일: ${file.name}`;
+    handleLocalExcelUpload(file);
+  };
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "🗑";
+  deleteBtn.style.cssText = "border:none;background:none;cursor:pointer;";
+  deleteBtn.onclick = () => {
+    delete fileMap[file.name];
+    container.remove();
+    resultDiv.innerText = `📁 '${file.name}' 삭제됨`;
+    if (Object.keys(fileMap).length === 0) {
+      resultDiv.innerText = "📁 업로드된 파일 없음";
+      jsonData = [];
+      xSelect.innerHTML = "";
+      ySelect.innerHTML = "";
+      legendSelect.innerHTML = '<option value="">선택 안함</option>';
+      if (myChart) myChart.destroy();
+    }
+  };
+
+  container.appendChild(nameBtn);
+  container.appendChild(deleteBtn);
+  fileListDiv.appendChild(container);
+});
 
       resultDiv.innerText = `✅ ${files.length}개 파일 업로드 완료`;
     });
 
-async function loadServerExcelList() {
-  const res = await fetch('/files');
-  const data = await res.json();
-  const listEl = document.getElementById('server-excel-list');
-  listEl.innerHTML = '';
 
-  // ✅ 여기가 핵심: 엑셀만 필터링
-  const excelFiles = data.files.filter(f => f.match(/\.(xlsx|xls|csv)$/i));
-
-  if (excelFiles.length === 0) {
-    listEl.innerHTML = '<li>엑셀 파일 없음</li>';
-    return;
-  }
-
-  excelFiles.forEach(file => {
-    const encoded = encodeURIComponent(file);
-    const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.textContent = file;
-    btn.style = 'border:none;background:none;color:#2563eb;text-decoration:underline;cursor:pointer;';
-    btn.onclick = () => fetchAndLoadExcel(`/static/uploads/${encoded}`);
-    li.appendChild(btn);
-    listEl.appendChild(li);
-  });
-}
 
     function handleLocalExcelUpload(file) {
       const reader = new FileReader();
