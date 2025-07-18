@@ -283,7 +283,7 @@
 <body>
   <!-- 🔘 차트 열기 버튼 -->
 <button id="open-chart-btn" onclick="openChartContainer('chart')">📊 차트 보기</button>
-<button id="open-dataset-btn" onclick="openChartContainer('dataset')">📁 데이터 셋</button>
+
 
   <!-- ✅ 기본 파일 업로드 + 검색 -->
   <h2>📁 다중 파일 업로드</h2>
@@ -369,7 +369,8 @@ function openChartContainer(mode) {
 
   // 버튼 숨김
   document.getElementById('open-chart-btn').style.display = 'none';
-  document.getElementById('open-dataset-btn').style.display = 'none';
+
+
 
 }
 
@@ -422,7 +423,7 @@ function closeChartContainer() {
 
   // 기존 버튼 복원
   document.getElementById('open-chart-btn').style.display = 'inline-block';
-  document.getElementById('open-dataset-btn').style.display = 'inline-block';
+
 
   // chart-container 내용 복원 (차트용 HTML이 있으면 너가 넣어야 함)
   location.reload();  // 임시로 새로고침 (내용 초기화 목적)
