@@ -420,13 +420,11 @@ document.getElementById('open-chart-btn').addEventListener('click', () => {
 function closeChartContainer() {
   const chartContainer = document.getElementById('chart-container');
   chartContainer.style.display = 'none';
-
-  // 기존 버튼 복원
   document.getElementById('open-chart-btn').style.display = 'inline-block';
 
-
-  // chart-container 내용 복원 (차트용 HTML이 있으면 너가 넣어야 함)
-  location.reload();  // 임시로 새로고침 (내용 초기화 목적)
+  // ❌ location.reload(); // 이거 주석 처리하거나 제거해
+  // ✅ 대신 내부 차트만 초기화 (필요하다면)
+  if (myChart) myChart.destroy();
 }
 
     // 기본 파일 업로드 + 검색
