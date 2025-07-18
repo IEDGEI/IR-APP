@@ -556,7 +556,7 @@ function closeChartContainer() {
             const li = document.createElement('li');
             li.innerHTML = `
               ${fileObj.filename}
-              <a href="/static/uploads/${encoded}" target="_blank">[열기]</a>
+              <a href="/static/uploads/${encoded}" target="_blank">[다운로드]</a>
               <button onclick="deleteFile('${fileObj.filename}')">❌</button>
             `;
             if (fileObj.matched) {
