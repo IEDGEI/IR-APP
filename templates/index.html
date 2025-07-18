@@ -398,17 +398,17 @@ function openChartContainer(mode) {
       if (result.success) {
         document.getElementById('upload-result').innerText = `✅ 업로드 완료: ${result.files.join(', ')}`;
         loadFileList();
-        loadExcelOptions();  // 🧩 셀렉트박스 동기화
       }
     });
 
 
 
     // 차트 or 데이터셋 보기
-    document.getElementById('open-dataset-btn').addEventListener('click', () => {
-      document.getElementById('chart-container').style.display = 'block';
-      loadExcelOptions();
-    });
+document.getElementById('open-chart-btn').addEventListener('click', () => {
+  document.getElementById('chart-container').style.display = 'block';
+  loadExcelOptions();  // ✅ 무조건 다시 불러오기
+});
+
 
     document.getElementById('open-chart-btn').addEventListener('click', () => {
       document.getElementById('chart-container').style.display = 'block';
