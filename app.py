@@ -39,6 +39,25 @@ def upload_files():
 
     return jsonify({'success': True, 'files': saved_files})
 
+# 🔥 파일 삭제 처리
+@app.route('/delete', methods=['POST'])
+def delete_file():
+    data = request.get_json()
+    filename = data.get('filename')
+    if not filename:
+        return jsonify({'success': False, 'error': '파일명이 누락됨'})
+
+    try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': '파일이 존재하지 않음'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
 # 저장된 파일 목록 반환
 @app.route('/files', methods=['GET'])
 def list_files():
