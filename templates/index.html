@@ -371,25 +371,6 @@ function openChartContainer(mode) {
   document.getElementById('open-chart-btn').style.display = 'none';
   document.getElementById('open-dataset-btn').style.display = 'none';
 
-  // 차트 관련 요소 숨기기 (mode가 dataset일 때만)
-  if (mode === 'dataset') {
-    chartContainer.innerHTML = `
-  
- <!-- 데이터 셋 병합 UI -->
-<div id="dataset-merge-ui">
-  <h3>📑 엑셀 병합 (기준 + 병합)</h3>
-
-  <label for="base-select">기준 엑셀 선택</label><br>
-  <select id="base-select" style="width: 300px; margin-bottom: 10px;"></select><br>
-
-  <label for="merge-select">병합 엑셀 선택</label><br>
-  <select id="merge-select" style="width: 300px; margin-bottom: 10px;"></select><br>
-
-  <button id="merge-btn">📥 병합 결과 다운로드</button>
-</div>
-
-    `;
-  }
 }
 
   async function loadFileList() {
